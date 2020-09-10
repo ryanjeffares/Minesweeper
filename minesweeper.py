@@ -7,19 +7,20 @@ import tile
 pygame.init()
 pygame.display.set_caption('Minesweeper')
 
+# Main container for game functionality
 class Minesweeper:
-    tiles = list()
+    tiles = list()          # We will store tiles in a list, and which of those are mines
     bombIndexes = list()
-    tilesChecked = 0
+    tilesChecked = 0        # Count the number of tiles checked so we know when the player has won
     sharedData = shareddata.SharedData()
 
     def __init__(self):
-        self.main()
+        self.main()         # Run the game when the class is instantiated
 
     def createTiles(self):
         x = 40
         y = 120
-        for i in range(480):
+        for i in range(480):    # 480 (30 x 16) on an expert level board
             if x > 1200:
                 x = 40
                 y += 40
@@ -28,21 +29,22 @@ class Minesweeper:
             x += 40
         counter = 0
         usedIndexes = list()
-        while counter < 99:
+        while counter < 99:     # Turn 99 random tiles into mines
             randIdx = random.randint(0, 479)
             self.tiles[randIdx].isBomb = True
             if randIdx not in usedIndexes:
                 counter += 1
             self.bombIndexes.append(randIdx)
+        self.assignIcons()
 
-    def assignIcons(self):
+    def assignIcons(self):      # This checks the adjacent tiles on each tile to count how many mines it touches
         i = 0
         for t in self.tiles:
             count = 0
-            if t.isBomb:
+            if t.isBomb:        # If it's a mine already, give it the mine icon for when it is checked
                 t.checkedIcon = self.sharedData.icons[9]
             else:
-                if i == 0:
+                if i == 0:      # Corners
                     check = (1, 30, 31)
                 elif i == 29:
                     check = (-1, 29, 30)
@@ -51,15 +53,15 @@ class Minesweeper:
                 elif i == 479:
                     check = (-31, -30, -1)
                 else:
-                    if t.x == 40:
+                    if t.x == 40:       # Top and bottom
                         check = (-30, -29, 1, 30, 31)
                     elif t.x == 1200:
                         check = (-31, -30, -1, 29, 30)
-                    elif t.y == 120:
+                    elif t.y == 120:    # Left and right
                         check = (-1, 1, 29, 30, 31)
                     elif t.y == 720:
                         check = (-31, -30, -29, -1, 1)
-                    else:
+                    else:               # Any other mine
                         check = (-31, -30, -29, -1, 1, 29, 30, 31)
                 for num in check:
                     if self.tiles[i + num].isBomb:
@@ -70,7 +72,7 @@ class Minesweeper:
             self.sharedData.screen.blit(t.icon, (t.x, t.y))
             i += 1
 
-    def checkTiles(self, index):
+    def checkTiles(self, index):        # Check adjacent tiles to the tile the player has just uncovered
         if index == 0:
             check = (1, 30, 31)
         elif index == 29:
@@ -98,9 +100,9 @@ class Minesweeper:
                         self.tiles[idx].icon = self.tiles[idx].checkedIcon
                         self.tiles[idx].checked = True
                         self.sharedData.screen.blit(self.tiles[idx].icon, (self.tiles[idx].x, self.tiles[idx].y))
-                        self.tilesChecked += 1
+                        self.tilesChecked += 1      # Increment the tiles uncovered
                         if self.tiles[idx].isZero:
-                            self.checkTiles(idx)
+                            self.checkTiles(idx)    # Run the function again on each further uncovered tile, if we should
 
     def gameOver(self, success):
         if success:
@@ -109,29 +111,35 @@ class Minesweeper:
             text = self.sharedData.fonts[0].render("GAME OVER - CLICK TO RESTART.", True, (255, 0, 0))
         self.sharedData.screen.blit(text, (400, 40))
 
-    def restart(self):
+    def restart(self):      # Reset the screen and clear the lists, start the game again
         pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[2], 600)
         self.tiles.clear()
         self.bombIndexes.clear()
         self.main()
 
     def main(self):
-        start = time.time()
-        self.createTiles()
-        self.assignIcons()
+        start = time.time() # Get start time of the game for the timer
+        self.createTiles()  # Create our tiles
         running = True
         gameIsOver = False
         flagsRemaining = 99
-        while running:
+        previousTime = 0
+        timer = self.sharedData.fonts[0].render("0", True, (0, 0, 0))   # Set up a timer and flag counter
+        flags = self.sharedData.fonts[0].render(str(flagsRemaining), True, (0, 0, 0))
+        self.sharedData.screen.blit(timer, (40, 40))
+        self.sharedData.screen.blit(flags, (1200, 40))
+        while running:          # Game loop
             if not gameIsOver:
-                pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[0], 40)
-                pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[1], 40)
-                elapsedTime = int(time.time() - start)
-                timer = self.sharedData.fonts[0].render(str(elapsedTime), True, (0, 0, 0))
-                flags = self.sharedData.fonts[0].render(str(flagsRemaining), True, (0, 0, 0))
-                self.sharedData.screen.blit(timer, (40, 40))
-                self.sharedData.screen.blit(flags, (1200, 40))
-            if self.tilesChecked == 381:
+                elapsedTime = int(time.time() - start)  # Get the elapsed time in seconds
+                if elapsedTime != previousTime:         # Update the counters only if a second has passed, so this is not being done every pass
+                    pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[0], 40)
+                    pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[1], 40)
+                    timer = self.sharedData.fonts[0].render(str(elapsedTime), True, (0, 0, 0))
+                    flags = self.sharedData.fonts[0].render(str(flagsRemaining), True, (0, 0, 0))
+                    self.sharedData.screen.blit(timer, (40, 40))
+                    self.sharedData.screen.blit(flags, (1200, 40))
+                previousTime = elapsedTime
+            if self.tilesChecked == 381:    # If the game is completed...
                 gameIsOver = True
                 self.gameOver(True)
             for event in pygame.event.get():
@@ -141,38 +149,37 @@ class Minesweeper:
                     quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if not gameIsOver:
-                        pos = pygame.mouse.get_pos()
+                        pos = pygame.mouse.get_pos()    # Get the mouse's position when clicked
                         index = 0
                         for t in self.tiles:
-                            if t.x <= pos[0] < t.x + 40 and t.y <= pos[1] < t.y + 40:
-                                if event.button == 1:
-                                    if t.isBomb:
+                            if t.x <= pos[0] < t.x + 40 and t.y <= pos[1] < t.y + 40:   # Find which tile was clicked
+                                if event.button == 1:   # If it was a left click...
+                                    if t.isBomb:        # If you clicked a bomb, you lose
                                         for b in self.bombIndexes:
                                             self.tiles[b].icon = self.tiles[b].checkedIcon
                                             self.sharedData.screen.blit(self.tiles[b].icon, (self.tiles[b].x, self.tiles[b].y))
                                         gameIsOver = True
                                         self.gameOver(False)
-                                    else:
+                                    else:               # If it wasn't a bomb, uncover it then check the adjacent tiles if it wasn't touching a mine
                                         t.icon = t.checkedIcon
                                         t.checked = True
                                         self.sharedData.screen.blit(t.icon, (t.x, t.y))
                                         if t.isZero:
                                             self.checkTiles(index)
-                                        self.tilesChecked += 1
-                                elif event.button == 3:
-                                    if t.icon == self.sharedData.icons[11]:
+                                        self.tilesChecked += 1  # Increment the tiles uncovered
+                                elif event.button == 3:         # If it was a right click...
+                                    if t.icon == self.sharedData.icons[11]: # If the tile wasn't flagged, flag it and decrement the flags remaining
                                         t.icon = self.sharedData.icons[10]
                                         flagsRemaining -= 1
-                                    elif t.icon == self.sharedData.icons[10]:
+                                    elif t.icon == self.sharedData.icons[10]:   # If it was flagged, unflag it
                                         t.icon = self.sharedData.icons[11]
                                     self.sharedData.screen.blit(t.icon, (t.x, t.y))
                                 break
                             index += 1
                     else:
-                        pass
-                        self.restart()
+                        self.restart()  # If the game is over, we can click anywhere on the screen to restart
             pygame.display.update()
 
-minesweeper = Minesweeper()
+minesweeper = Minesweeper() # Make an instance of the game - the __init__ function starts the game
 pygame.quit()
 quit()
