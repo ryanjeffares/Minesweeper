@@ -25,6 +25,25 @@ class Minesweeper:
                 x = 40
                 y += 40
             self.tiles.append(tile.Tile(x, y, self.sharedData.icons[11]))
+            if i == 0:  # Corners
+                self.tiles[i].position = "topLeftCorner"
+            elif i == 29:
+                self.tiles[i].position = "topRightCorner"
+            elif i == 450:
+                self.tiles[i].position = "bottomLeftCorner"
+            elif i == 479:
+                self.tiles[i].position = "bottomRightCorner"
+            else:
+                if self.tiles[i].x == 40:       # Left and right
+                    self.tiles[i].position = "left"
+                elif self.tiles[i].x == 1200:
+                    self.tiles[i].position = "right"
+                elif self.tiles[i].y == 120:    # Top and bottom
+                    self.tiles[i].position = "top"
+                elif self.tiles[i].y == 720:
+                    self.tiles[i].position = "bottom"
+                else:                           # Any other mine
+                    self.tiles[i].position = "middle"
             self.sharedData.screen.blit(self.tiles[i].icon, (x, y))
             x += 40
         counter = 0
@@ -38,31 +57,12 @@ class Minesweeper:
         self.assignIcons()
 
     def assignIcons(self):      # This checks the adjacent tiles on each tile to count how many mines it touches
-        i = 0
-        for t in self.tiles:
+        for i, t in enumerate(self.tiles):
             count = 0
             if t.isBomb:        # If it's a mine already, give it the mine icon for when it is checked
                 t.checkedIcon = self.sharedData.icons[9]
             else:
-                if i == 0:      # Corners
-                    check = (1, 30, 31)
-                elif i == 29:
-                    check = (-1, 29, 30)
-                elif i == 450:
-                    check = (-30, -29, 1)
-                elif i == 479:
-                    check = (-31, -30, -1)
-                else:
-                    if t.x == 40:       # Top and bottom
-                        check = (-30, -29, 1, 30, 31)
-                    elif t.x == 1200:
-                        check = (-31, -30, -1, 29, 30)
-                    elif t.y == 120:    # Left and right
-                        check = (-1, 1, 29, 30, 31)
-                    elif t.y == 720:
-                        check = (-31, -30, -29, -1, 1)
-                    else:               # Any other mine
-                        check = (-31, -30, -29, -1, 1, 29, 30, 31)
+                check = self.sharedData.adjacentTilesToCheck[t.position]
                 for num in check:
                     if self.tiles[i + num].isBomb:
                         count += 1
@@ -70,28 +70,9 @@ class Minesweeper:
                 if count == 0:
                     t.isZero = True
             self.sharedData.screen.blit(t.icon, (t.x, t.y))
-            i += 1
 
     def checkTiles(self, index):        # Check adjacent tiles to the tile the player has just uncovered
-        if index == 0:
-            check = (1, 30, 31)
-        elif index == 29:
-            check = (-1, 29, 30)
-        elif index == 450:
-            check = (-30, -29, 1)
-        elif index == 479:
-            check = (-31, -30, -1)
-        else:
-            if self.tiles[index].x == 40:
-                check = (-30, -29, 1, 30, 31)
-            elif self.tiles[index].x == 1200:
-                check = (-31, -30, -1, 29, 30)
-            elif self.tiles[index].y == 120:
-                check = (-1, 1, 29, 30, 31)
-            elif self.tiles[index].y == 720:
-                check = (-31, -30, -29, -1, 1)
-            else:
-                check = (-31, -30, -29, -1, 1, 29, 30, 31)
+        check = self.sharedData.adjacentTilesToCheck[self.tiles[index].position]
         if len(check) > 0:
             for num in check:
                 idx = index + num
@@ -149,9 +130,8 @@ class Minesweeper:
                     quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if not gameIsOver:
-                        pos = pygame.mouse.get_pos()    # Get the mouse's position when clicked
-                        index = 0
-                        for t in self.tiles:
+                        pos = pygame.mouse.get_pos()    # Get the mouse's position when clicked                        
+                        for index, t in enumerate(self.tiles):
                             if t.x <= pos[0] < t.x + 40 and t.y <= pos[1] < t.y + 40:   # Find which tile was clicked
                                 if event.button == 1:   # If it was a left click...
                                     if t.isBomb:        # If you clicked a bomb, you lose
@@ -174,8 +154,7 @@ class Minesweeper:
                                     elif t.icon == self.sharedData.icons[10]:   # If it was flagged, unflag it
                                         t.icon = self.sharedData.icons[11]
                                     self.sharedData.screen.blit(t.icon, (t.x, t.y))
-                                break
-                            index += 1
+                                break                            
                     else:
                         self.restart()  # If the game is over, we can click anywhere on the screen to restart
             pygame.display.update()

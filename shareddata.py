@@ -10,6 +10,18 @@ class SharedData:
     screen = pygame.display.set_mode((1280, 800))
     screen.fill((186, 186, 186))
 
+    adjacentTilesToCheck = {
+        "topLeftCorner" : (1, 30, 31),
+        "topRightCorner" : (-1, 29, 30),
+        "bottomLeftCorner" : (-30, -29, 1),
+        "bottomRightCorner" : (-31, -30, -1),
+        "top" : (-1, 1, 29, 30, 31),
+        "bottom" : (-31, -30, -29, -1, 1),
+        "left" : (-30, -29, 1, 30, 31),
+        "right" : (-31, -30, -1, 29, 30),
+        "middle" : (-31, -30, -29, -1, 1, 29, 30, 31)
+    }
+
     def __init__(self):
         self.loadImages()
         self.loadFonts()

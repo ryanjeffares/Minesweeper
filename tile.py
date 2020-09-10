@@ -3,6 +3,7 @@ class Tile:
     checked = False
     isZero = False
     checkedIcon = None
+    position = None
 
     def __init__(self, x, y, icon):
         self.x = x
