@@ -1,16 +1,10 @@
-import pygame
-
 class Tile:
-    icon = ''
+    isBomb = False
+    checked = False
+    isZero = False
+    checkedIcon = None
 
-    def __init__(self, isBomb, x, y):
+    def __init__(self, x, y, icon):
         self.x = x
         self.y = y
-        self.isBomb = isBomb
-        if isBomb:
-            icon = 'Resources/bomb.png'
-        else:
-            self.calculateNumber()
-
-    def calculateNumber(self):
-        pass
+        self.icon = icon
