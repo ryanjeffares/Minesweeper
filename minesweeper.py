@@ -94,6 +94,7 @@ class Minesweeper:
 
     def restart(self):      # Reset the screen and clear the lists, start the game again
         pygame.draw.rect(self.sharedData.screen, (186, 186, 186), self.sharedData.rects[2], 600)
+        self.tilesChecked = 0
         self.tiles.clear()
         self.bombIndexes.clear()
         self.main()
