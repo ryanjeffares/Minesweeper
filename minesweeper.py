@@ -160,6 +160,8 @@ class Minesweeper:
                         self.restart()  # If the game is over, we can click anywhere on the screen to restart
             pygame.display.update()
 
-minesweeper = Minesweeper() # Make an instance of the game - the __init__ function starts the game
+if __name__ == "__main__":
+    minesweeper = Minesweeper() # Make an instance of the game - the __init__ function starts the game
+    
 pygame.quit()
 quit()
