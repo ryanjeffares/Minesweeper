@@ -50,10 +50,11 @@ class Minesweeper:
         usedIndexes = list()
         while counter < 99:     # Turn 99 random tiles into mines
             randIdx = random.randint(0, 479)
-            self.tiles[randIdx].isBomb = True
             if randIdx not in usedIndexes:
+                self.tiles[randIdx].isBomb = True
+                self.bombIndexes.append(randIdx)
+                usedIndexes.append(randIdx)
                 counter += 1
-            self.bombIndexes.append(randIdx)
         self.assignIcons()
 
     def assignIcons(self):      # This checks the adjacent tiles on each tile to count how many mines it touches
@@ -121,7 +122,7 @@ class Minesweeper:
                     self.sharedData.screen.blit(timer, (40, 40))
                     self.sharedData.screen.blit(flags, (1200, 40))
                 previousTime = elapsedTime
-            if self.tilesChecked == 381:    # If the game is completed...
+            if self.tilesChecked == 371:    # If the game is completed...
                 gameIsOver = True
                 self.gameOver(True)
             for event in pygame.event.get():
@@ -148,7 +149,7 @@ class Minesweeper:
                                         if t.isZero:
                                             self.checkTiles(index)
                                         self.tilesChecked += 1  # Increment the tiles uncovered
-                                elif event.button == 3:         # If it was a right click...
+                                elif event.button == 3 and flagsRemaining > 0:         # If it was a right click...
                                     if t.icon == self.sharedData.icons[11]: # If the tile wasn't flagged, flag it and decrement the flags remaining
                                         t.icon = self.sharedData.icons[10]
                                         flagsRemaining -= 1
